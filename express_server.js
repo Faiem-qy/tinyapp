@@ -44,15 +44,23 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-
+app.get("/u/:id", (req, res) => {
+  const shortURL = req.params.id;//grab id from address bar
+  const longURL = urlDatabase[shortURL];// use id to get corresponding value from urlDatabase object
+  console.log(longURL);
+  res.redirect(longURL);
+});
 
 app.post("/urls", (req, res) => {
   const longURL = req.body.longURL;
   const shortURL = generateRandomString();
-  urlDatabase[shortURL] = longURL;
+  urlDatabase[shortURL] = longURL;// assign new key value pair into urlDatabase object
   console.log(urlDatabase);
   res.redirect("/urls/:id");
 });
+
+
+
 
 
 function generateRandomString() {
