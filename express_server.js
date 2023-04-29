@@ -34,7 +34,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  const id = req.params.id;
+  const id = req.params.id;//grab id from address bar
   const templateVars = { id, longURL: urlDatabase[id] };
   res.render("urls_show", templateVars);
 });
@@ -53,13 +53,18 @@ app.get("/u/:id", (req, res) => {
 
 app.post("/urls", (req, res) => {
   const longURL = req.body.longURL;
-  const shortURL = generateRandomString();
-  urlDatabase[shortURL] = longURL;// assign new key value pair into urlDatabase object
+  const id = generateRandomString();
+  urlDatabase[id] = longURL;// assign new key value pair into urlDatabase object
   console.log(urlDatabase);
-  res.redirect("/urls/:id");
+  res.redirect(`/urls/${id}`);
 });
 
-
+app.post("/urls/:id/delete", (req, res) => {
+  const shortURL = req.params.id;
+  delete urlDatabase[shortURL];
+  console.log(urlDatabase);
+  res.redirect("/urls");
+});
 
 
 
