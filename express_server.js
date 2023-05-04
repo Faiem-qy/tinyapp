@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const cookieParser = require('cookie-parser');
 const PORT = 8080; // default port 8080
 
 
@@ -20,7 +21,7 @@ app.listen(PORT, () => {
 // });
 
 app.use(express.urlencoded({ extended: true }));
-
+app.use(cookieParser());
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
@@ -35,12 +36,19 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls/:id", (req, res) => {
   const id = req.params.id;//grab id from address bar
-  const templateVars = { id, longURL: urlDatabase[id] };
+  const templateVars = {
+    id,
+    longURL: urlDatabase[id],
+    username: req.cookies["username"]
+  };
   res.render("urls_show", templateVars);
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = {
+    urls: urlDatabase,
+    username: req.cookies["username"]
+  };
   res.render("urls_index", templateVars);
 });
 
