@@ -55,6 +55,7 @@ app.post("/urls", (req, res) => {
   const longURL = req.body.longURL;
   const id = generateRandomString();
   urlDatabase[id] = longURL;// assign new key value pair into urlDatabase object
+  console.log(req.body);
   console.log(urlDatabase);
   res.redirect(`/urls/${id}`);
 });
@@ -70,8 +71,14 @@ app.post("/urls/:id/delete", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
   let longURL = req.body.longURL;
+  console.log(req.params);
   console.log(id, longURL);
   urlDatabase[id] = longURL;
+  res.redirect("/urls");
+});
+
+app.post("/login", (req, res) => {
+  res.cookie('username', req.body.username);
   res.redirect("/urls");
 });
 
