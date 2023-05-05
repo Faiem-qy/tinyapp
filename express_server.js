@@ -12,6 +12,19 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur",
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk",
+  },
+};
+
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
@@ -59,6 +72,18 @@ app.get("/u/:id", (req, res) => {
   res.redirect(longURL);
 });
 
+app.get("/register", (req, res) => {
+  const id = req.params.id;//grab id from address bar
+  const templateVars = {
+    id,
+    longURL: urlDatabase[id],
+    username: req.cookies["username"]
+  };
+  res.render("registration", templateVars);
+});
+
+
+
 app.post("/urls", (req, res) => {
   const longURL = req.body.longURL;
   const id = generateRandomString();
@@ -95,6 +120,20 @@ app.post("/logout", (req, res) => {
   res.redirect("/urls");
 });
 
+app.post("/register", (req, res) => {
+  const id = generateRandomString();
+  const email = req.body.email;
+  const password = req.body.password;
+  users[id] = { id, email, password };
+  console.log(users);
+  res.cookie('user_id', req.body.email);
+
+  // console.log(req.body);
+  // const longURL = req.body.longURL;
+  // urlDatabase[id] = longURL;// assign new key value pair into urlDatabase object
+
+  res.redirect(`/urls`);
+});
 
 function generateRandomString() {
   const alphanumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
