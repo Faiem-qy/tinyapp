@@ -88,6 +88,16 @@ app.get("/register", (req, res) => {
   res.render("registration", templateVars);
 });
 
+app.get("/login", (req, res) => {
+  const id = req.params.id;//grab id from address bar
+  const templateVars = {
+    id,
+    longURL: urlDatabase[id],
+    user_id: req.cookies["user_id"]
+  };
+  res.render("login", templateVars);
+});
+
 
 
 app.post("/urls", (req, res) => {
