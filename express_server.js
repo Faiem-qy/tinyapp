@@ -15,7 +15,7 @@ const urlDatabase = {
 const users = {
   userRandomID: {
     id: "userRandomID",
-    email: "user@example.com",
+    email: "fakeemail@email.com",
     password: "purple-monkey-dinosaur",
   },
   user2RandomID: {
@@ -131,10 +131,18 @@ app.post("/register", (req, res) => {
   const id = generateRandomString();
   const email = req.body.email;
   const password = req.body.password;
-  users[id] = { id, email, password };
-  res.cookie('user_id', users[id].id);
-  console.log(users);
-  console.log(req.cookies);
+  if (email === '' || password === '') {
+    return res.status(400).send("Error 400 - Please provide valid email and/or password");
+  } else if (getUserByEmail(email)) {
+    return res.status(400).send("Error 400 - Email already exists");
+  } else {
+    users[id] = { id, email, password };
+    res.cookie('user_id', users[id].id);
+
+  }
+
+  //   console.log(users);
+  // console.log(req.cookies);
   // const longURL = req.body.longURL;
   // urlDatabase[id] = longURL;// assign new key value pair into urlDatabase object
 
@@ -149,3 +157,19 @@ function generateRandomString() {
   }
   return result;
 }
+
+
+const getUserByEmail = (email) => {
+  //loop through the object using a for of loop
+  for (const userId in users) {
+    if (users[userId].email === email) {
+      return users;
+    }
+  }
+  //if object.key(email) is equal to req.body.email
+  //then return the entire user object
+  //else return null
+  return null;
+};
+
+// getUserByEmail()
