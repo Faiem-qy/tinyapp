@@ -16,12 +16,12 @@ const users = {
   userRandomID: {
     id: "userRandomID",
     email: "fakeemail@email.com",
-    password: "purple-monkey-dinosaur",
+    password: "123",
   },
   user2RandomID: {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk",
+    password: "1234",
   },
 };
 
@@ -126,11 +126,11 @@ app.post("/urls/:id", (req, res) => {
   res.redirect("/urls");
 });
 
-app.post("/login", (req, res) => {
-  const user_id = req.cookies.user_id;
-  res.cookie('user_id', req.body.users[user_id]);
-  res.redirect("/urls");
-});
+// app.post("/login", (req, res) => {
+//   const user_id = req.cookies.user_id;
+//   res.cookie('user_id', req.body.users[user_id]);
+//   res.redirect("/urls");
+// });
 
 app.post("/logout", (req, res) => {
   res.clearCookie('user_id');
@@ -150,12 +150,28 @@ app.post("/register", (req, res) => {
     res.cookie('user_id', users[id].id);
 
   }
+  res.redirect(`/urls`);
+});
 
-  //   console.log(users);
-  // console.log(req.cookies);
-  // const longURL = req.body.longURL;
-  // urlDatabase[id] = longURL;// assign new key value pair into urlDatabase object
-
+app.post("/login", (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  const user_id = getUserId(email, users);
+  console.log("user_id", user_id);
+  if (email === '' || password === '') {
+    return res.status(400).send("Error 400 - Please provide valid email and/or password");
+  }
+  if (!getUserByEmail(email)) {
+    return res.status(403).send("Error 403 - User Not Found");
+  }
+  if (getUserByEmail(email)) {
+    if (checkUserPassword(password) === password) {
+      res.cookie('user_id', users[user_id].id);
+    }
+    // return res.status(400).send("Error 400 - Email already exists");
+  } else {
+    return res.status(403).send("Error 403 - Incorrect Password!!");
+  }
   res.redirect(`/urls`);
 });
 
@@ -182,4 +198,20 @@ const getUserByEmail = (email) => {
   return null;
 };
 
-// getUserByEmail()
+const checkUserPassword = (password) => {
+  for (const userId in users) {
+    if (users[userId].password === password) {
+      return password;
+    }
+  }
+  return null;
+};
+
+function getUserId(email, users) {
+  for (const user in users) {
+    if (users[user].email === email) {
+      return users[user].id;
+    }
+  }
+  return false;
+}
