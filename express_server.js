@@ -56,12 +56,16 @@ app.get("/hello", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   const user_id = req.cookies.user_id;
-
   const templateVars = {
     users,
     user_id
   };
-  res.render("urls_new", templateVars);
+
+  if (!user_id) {// redirecrt to get login if the cookie doesn't exist
+    res.redirect('/login');
+  } else {
+    res.render("urls_new", templateVars);
+  }
 });
 
 app.get("/urls/:id", (req, res) => {
