@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const cookieParser = require('cookie-parser');
+const e = require("express");
 const PORT = 8080; // default port 8080
 
 
@@ -21,16 +22,20 @@ const urlDatabase = {
     longURL: "https://www.google.ca",
     userID: "aJ48lW",
   },
+  i4ZoGp: {
+    longURL: "https://www.msn.ca",
+    userID: "user2ID",
+  },
 };
 
 const users = {
-  userRandomID: {
-    id: "userRandomID",
+  aJ48lW: {
+    id: "aJ48lW",
     email: "fakeemail@email.com",
     password: "123",
   },
-  user2RandomID: {
-    id: "user2RandomID",
+  user2ID: {
+    id: "user2ID",
     email: "user2@example.com",
     password: "1234",
   },
@@ -76,19 +81,27 @@ app.get("/urls/:id", (req, res) => {
     user_id,
     users,
     longURL: urlDatabase[id].longURL,
-
   };
-  res.render("urls_show", templateVars);
+  if (!user_id) {
+    res.send("<html><head><title>Error</title></head><body><h1>🛑🛑🛑You need to be logged in!! 🛑🛑🛑</h1></body></html>");
+  } else {
+    res.render("urls_show", templateVars);
+  }
 });
 
 app.get("/urls", (req, res) => {
   const user_id = req.cookies.user_id;
   const templateVars = {
-    urls: urlDatabase,
+    urls: urlsForUser(user_id),
     users,
     user_id
   };
-  res.render("urls_index", templateVars);
+  if (!user_id) {// display error if user is not logged in
+    res.send("<html><head><title>Error</title></head><body><h1>🤚🤚You need to be logged in to access My URL's 🚫🚏</h1></body></html>");
+  } else {
+
+    res.render("urls_index", templateVars);
+  }
 });
 
 app.get("/u/:id", (req, res) => {
@@ -265,4 +278,14 @@ function confirmId(id, db) {
     }
   }
   return false;
+}
+
+function urlsForUser(id) {
+  let usersURLs = {};
+  for (const shortUrlId in urlDatabase) {
+    if (urlDatabase[shortUrlId].userID == id) {
+      usersURLs[shortUrlId] = urlDatabase[shortUrlId].longURL;
+    }
+  }
+  return usersURLs;
 }
