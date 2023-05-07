@@ -7,9 +7,20 @@ const PORT = 8080; // default port 8080
 app.set("view engine", "ejs");
 
 
+// const urlDatabase = {
+//   "b2xVn2": "http://www.lighthouselabs.ca",
+//   "9sm5xK": "http://www.google.com"
+// };
+
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW",
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW",
+  },
 };
 
 const users = {
@@ -45,7 +56,7 @@ app.get("/hello", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
   const user_id = req.cookies.user_id;
-  console.log(user_id);
+
   const templateVars = {
     users,
     user_id
@@ -55,10 +66,12 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls/:id", (req, res) => {
   const id = req.params.id;//grab id from address bar
+  const user_id = req.cookies.user_id;
   const templateVars = {
     id,
+    user_id,
     users,
-    longURL: urlDatabase[id],
+    longURL: urlDatabase[id].longURL,
 
   };
   res.render("urls_show", templateVars);
@@ -66,8 +79,6 @@ app.get("/urls/:id", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const user_id = req.cookies.user_id;
-  console.log(req.cookies);
-  // console.log(users);
   const templateVars = {
     urls: urlDatabase,
     users,
@@ -78,39 +89,48 @@ app.get("/urls", (req, res) => {
 
 app.get("/u/:id", (req, res) => {
   const shortURL = req.params.id;//grab id from address bar
-  const longURL = urlDatabase[shortURL];// use id to get corresponding value from urlDatabase object
-  console.log(longURL);
-  res.redirect(longURL);
+  const longURL = urlDatabase[shortURL].longURL;// use id to get corresponding value from urlDatabase object
+  if (!confirmId(shortURL, urlDatabase)) {
+    res.status(404).send('<html><head><title>Error</title></head><body><h1>Page not found</h1><p>The page you requested could not be found.</p></body></html>');
+  } else {
+    res.redirect(longURL);
+  }
 });
 
 app.get("/register", (req, res) => {
-  const id = req.params.id;//grab id from address bar
   const user_id = req.cookies.user_id;//check if user is logged in by checking for cookie
-  const templateVars = {
-    id,
-    longURL: urlDatabase[id],
-    user_id: req.cookies["user_id"]
-  };
   // if already registered then go to /urls
   if (user_id) {
-    res.redirect(`/urls`);
+    const id = req.params.id;//grab id from address bar
+    const templateVars = {
+      id,
+      longURL: urlDatabase[id].longURL,
+      user_id: req.cookies["user_id"]
+    };
+    res.redirect(`/urls`, templateVars);
   } else {
+    const templateVars = {
+      user_id: req.cookies["user_id"]
+    };
     res.render("registration", templateVars);
   }
 });
 
 app.get("/login", (req, res) => {
-  const id = req.params.id;//grab id from address bar
   const user_id = req.cookies.user_id;// check if user is logged in by verifying cookie
-  const templateVars = {
-    id,
-    longURL: urlDatabase[id],
-    user_id: req.cookies["user_id"]
-  };
   // if already registered then go to /urls
   if (user_id) {
-    res.redirect(`/urls`);
+    const id = req.params.id;//grab id from address bar
+    const templateVars = {
+      id,
+      longURL: urlDatabase[id].longURL,
+      user_id: req.cookies["user_id"]
+    };
+    res.redirect(`/urls`, templateVars);
   } else {
+    const templateVars = {
+      user_id: req.cookies["user_id"]
+    };
     res.render("login", templateVars);
   }
 });
@@ -120,16 +140,22 @@ app.get("/login", (req, res) => {
 app.post("/urls", (req, res) => {
   const longURL = req.body.longURL;
   const id = generateRandomString();
-  urlDatabase[id] = longURL;// assign new key value pair into urlDatabase object
-  console.log(req.body);
+  const user_id = req.cookies.user_id;
   console.log(urlDatabase);
+  console.log(req.body);
+  urlDatabase[id] = { "longURL": longURL, "userID": user_id };// assign new key value pair into urlDatabase object
+  if (!user_id) {
+    return res.send("You need to be logged in to perform this action!!😎 ");
+  }
+  console.log(urlDatabase);
+
   res.redirect(`/urls/${id}`);
 });
 
 app.post("/urls/:id/delete", (req, res) => {
   const shortURL = req.params.id;
+  console.log(req.params);
   delete urlDatabase[shortURL];
-  console.log(urlDatabase);
   res.redirect("/urls");
 });
 
@@ -139,7 +165,7 @@ app.post("/urls/:id", (req, res) => {
   let longURL = req.body.longURL;
   console.log(req.params);
   console.log(id, longURL);
-  urlDatabase[id] = longURL;
+  urlDatabase[id].longURL = longURL;
   res.redirect("/urls");
 });
 
@@ -222,6 +248,16 @@ function getUserId(email, users) {
   for (const user in users) {
     if (users[user].email === email) {
       return users[user].id;
+    }
+  }
+  return false;
+}
+
+
+function confirmId(id, db) {
+  for (const key in db) {
+    if (key === id) {
+      return true;
     }
   }
   return false;
