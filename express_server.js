@@ -85,22 +85,34 @@ app.get("/u/:id", (req, res) => {
 
 app.get("/register", (req, res) => {
   const id = req.params.id;//grab id from address bar
+  const user_id = req.cookies.user_id;//check if user is logged in by checking for cookie
   const templateVars = {
     id,
     longURL: urlDatabase[id],
     user_id: req.cookies["user_id"]
   };
-  res.render("registration", templateVars);
+  // if already registered then go to /urls
+  if (user_id) {
+    res.redirect(`/urls`);
+  } else {
+    res.render("registration", templateVars);
+  }
 });
 
 app.get("/login", (req, res) => {
   const id = req.params.id;//grab id from address bar
+  const user_id = req.cookies.user_id;// check if user is logged in by verifying cookie
   const templateVars = {
     id,
     longURL: urlDatabase[id],
     user_id: req.cookies["user_id"]
   };
-  res.render("login", templateVars);
+  // if already registered then go to /urls
+  if (user_id) {
+    res.redirect(`/urls`);
+  } else {
+    res.render("login", templateVars);
+  }
 });
 
 
