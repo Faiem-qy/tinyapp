@@ -18,11 +18,11 @@ const urlDatabase = {
     longURL: "https://www.tsn.ca",
     userID: "aJ48lW",
   },
-  i3BoGr: {
+  sgq3y6: {
     longURL: "https://www.google.ca",
     userID: "aJ48lW",
   },
-  i4ZoGp: {
+  sgq3y5: {
     longURL: "https://www.msn.ca",
     userID: "user2ID",
   },
@@ -76,15 +76,17 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   const id = req.params.id;//grab id from address bar
   const user_id = req.cookies.user_id;
-  const templateVars = {
-    id,
-    user_id,
-    users,
-    longURL: urlDatabase[id].longURL,
-  };
   if (!user_id) {
     res.send("<html><head><title>Error</title></head><body><h1>🛑🛑🛑You need to be logged in!! 🛑🛑🛑</h1></body></html>");
+  } else if (!confirmId(id, urlDatabase)) {
+    res.send("<html><head><title>Error</title></head><body><h1>🛑This url does not exist 🛑</h1></body></html>");
   } else {
+    const templateVars = {
+      id,
+      user_id,
+      users,
+      longURL: urlDatabase[id].longURL,
+    };
     res.render("urls_show", templateVars);
   }
 });
@@ -169,22 +171,36 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${id}`);
 });
 
-app.post("/urls/:id/delete", (req, res) => {
-  const shortURL = req.params.id;
-  console.log(req.params);
-  delete urlDatabase[shortURL];
-  res.redirect("/urls");
-});
-
-//Update
+//Edit
 app.post("/urls/:id", (req, res) => {
   const id = req.params.id;
+  const user_id = req.cookies.user_id;
+
   let longURL = req.body.longURL;
-  console.log(req.params);
-  console.log(id, longURL);
-  urlDatabase[id].longURL = longURL;
-  res.redirect("/urls");
+  if (!urlsForUser(user_id)[id]) {
+    res.send("<html><head><title>Error</title></head><body><h1>🤚🤚You do not have permission to edit </h1></body></html>");
+  } else {
+    urlDatabase[id].longURL = longURL;
+    res.redirect("/urls");
+  }
 });
+
+//Delete
+app.post("/urls/:id/delete", (req, res) => {
+  const shortURL = req.params.id;
+  const user_id = req.cookies.user_id;
+  if (!user_id) {
+    return res.send("You need to be logged in to delete!!😎 ");
+  } else if (!urlsForUser(user_id)[shortURL]) {
+    res.send("<html><head><title>Error</title></head><body><h1>🤚🤚You do not have permission to delete Url!! </h1></body></html>");
+  } else if (!confirmId(shortURL, urlDatabase)) {
+    res.send("<html><head><title>Error</title></head><body><h1>🤚🤚 You cannot delete a URL that does not exist!! </h1></body></html>");
+  } else {
+    delete urlDatabase[shortURL];
+    res.redirect("/urls");
+  }
+});
+
 
 app.post("/logout", (req, res) => {
   res.clearCookie('user_id');
