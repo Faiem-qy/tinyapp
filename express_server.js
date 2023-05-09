@@ -274,7 +274,7 @@ function generateRandomString() {
 }
 
 
-const getUserByEmail = (email) => {
+const getUserByEmail = (email, users) => {
   //loop through the object using a for of loop
   for (const userId in users) {
     if (users[userId].email === email) {
