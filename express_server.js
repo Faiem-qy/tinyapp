@@ -1,3 +1,6 @@
+const { confirmId, urlsForUser, getUserId, checkUserPassword, getUserByEmail, generateRandomString } = require("./helpers");
+
+
 const express = require("express");
 const app = express();
 // const cookieParser = require('cookie-parser');
@@ -102,12 +105,12 @@ app.get("/urls/:id", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const user_id = req.session.user_id;
-  console.log(user_id);
+  console.log("get /urls", user_id);
   // console.log(users);
   // console.log(urlDatabase);
-  console.log(req.session);
+  console.log("get /urls session", req.session);
   const templateVars = {
-    urls: urlsForUser(user_id),
+    urls: urlsForUser(user_id, urlDatabase),
     users,
     user_id
   };
@@ -151,6 +154,7 @@ app.get("/register", (req, res) => {
 app.get("/login", (req, res) => {
   const user_id = req.session.user_id;// check if user is logged in by verifying cookie
   // if already registered then go to /urls
+  console.log('get/login user id', user_id);
   if (user_id) {
     const id = req.params.id;//grab id from address bar
     const templateVars = {
@@ -190,7 +194,7 @@ app.post("/urls/:id", (req, res) => {
   const user_id = req.session.user_id;
 
   let longURL = req.body.longURL;
-  if (!urlsForUser(user_id)[id]) {
+  if (!urlsForUser(user_id, urlDatabase)[id]) {
     res.send("<html><head><title>Error</title></head><body><h1>🤚🤚You do not have permission to edit </h1></body></html>");
   } else {
     urlDatabase[id].longURL = longURL;
@@ -204,7 +208,7 @@ app.post("/urls/:id/delete", (req, res) => {
   const user_id = req.session.user_id;
   if (!user_id) {
     return res.send("You need to be logged in to delete!!😎 ");
-  } else if (!urlsForUser(user_id)[shortURL]) {
+  } else if (!urlsForUser(user_id, urlDatabase)[shortURL]) {
     res.send("<html><head><title>Error</title></head><body><h1>🤚🤚You do not have permission to delete Url!! </h1></body></html>");
   } else if (!confirmId(shortURL, urlDatabase)) {
     res.send("<html><head><title>Error</title></head><body><h1>🤚🤚 You cannot delete a URL that does not exist!! </h1></body></html>");
@@ -227,14 +231,14 @@ app.post("/register", (req, res) => {
   const password = req.body.password;
   if (email === '' || password === '') {
     return res.status(400).send("Error 400 - Please provide valid email and/or password");
-  } else if (getUserByEmail(email)) {
+  } else if (getUserByEmail(email, users)) {
     return res.status(400).send("Error 400 - Email already exists");
   } else {
     users[id] = { id, email, password };
     // res.cookie('user_id', users[id].id);
     req.session.user_id = users[id].id;
 
-    console.log(req.session.user_id);
+    console.log("/register - session", req.session.user_id);
 
   }
   res.redirect(`/urls`);
@@ -249,11 +253,11 @@ app.post("/login", (req, res) => {
   if (email === '' || password === '') {
     return res.status(400).send("Error 400 - Please provide valid email and/or password");
   }
-  if (!getUserByEmail(email)) {
+  if (!getUserByEmail(email, users)) {
     return res.status(403).send("Error 403 - User Not Found");
   }
-  if (getUserByEmail(email)) {
-    if (checkUserPassword(password)) {
+  if (getUserByEmail(email, users)) {
+    if (checkUserPassword(password, users)) {
       // res.cookie('user_id', users[user_id].id);
       req.session.user_id = users[user_id].id;
     }
@@ -264,63 +268,63 @@ app.post("/login", (req, res) => {
   res.redirect(`/urls`);
 });
 
-function generateRandomString() {
-  const alphanumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for (let i = 0; i < 6; i++) {
-    result += alphanumeric.charAt(Math.floor(Math.random() * alphanumeric.length));
-  }
-  return result;
-}
+// function generateRandomString() {
+//   const alphanumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+//   let result = '';
+//   for (let i = 0; i < 6; i++) {
+//     result += alphanumeric.charAt(Math.floor(Math.random() * alphanumeric.length));
+//   }
+//   return result;
+// }
 
 
-const getUserByEmail = (email, users) => {
-  //loop through the object using a for of loop
-  for (const userId in users) {
-    if (users[userId].email === email) {
-      return users;
-    }
-  }
-  //if object.key(email) is equal to req.body.email
-  //then return the entire user object
-  //else return null
-  return null;
-};
+// const getUserByEmail = (email, users) => {
+//   //loop through the object using a for of loop
+//   for (const userId in users) {
+//     if (users[userId].email === email) {
+//       return users;
+//     }
+//   }
+//   //if object.key(email) is equal to req.body.email
+//   //then return the entire user object
+//   //else return null
+//   return null;
+// };
 
-const checkUserPassword = (password) => {
-  for (const userId in users) {
-    if (bcrypt.compareSync(password, users[userId].password)) {
-      return true;
-    }
-  }
-  return null;
-};
+// const checkUserPassword = (password) => {
+//   for (const userId in users) {
+//     if (bcrypt.compareSync(password, users[userId].password)) {
+//       return true;
+//     }
+//   }
+//   return null;
+// };
 
-function getUserId(email, users) {
-  for (const user in users) {
-    if (users[user].email === email) {
-      return users[user].id;
-    }
-  }
-  return false;
-}
+// function getUserId(email, users) {
+//   for (const user in users) {
+//     if (users[user].email === email) {
+//       return users[user].id;
+//     }
+//   }
+//   return false;
+// }
 
 
-function confirmId(id, db) {
-  for (const key in db) {
-    if (key === id) {
-      return true;
-    }
-  }
-  return false;
-}
+// function confirmId(id, db) {
+//   for (const key in db) {
+//     if (key === id) {
+//       return true;
+//     }
+//   }
+//   return false;
+// }
 
-function urlsForUser(id) {
-  let usersURLs = {};
-  for (const shortUrlId in urlDatabase) {
-    if (urlDatabase[shortUrlId].userID == id) {
-      usersURLs[shortUrlId] = urlDatabase[shortUrlId].longURL;
-    }
-  }
-  return usersURLs;
-}
+// function urlsForUser(id) {
+//   let usersURLs = {};
+//   for (const shortUrlId in urlDatabase) {
+//     if (urlDatabase[shortUrlId].userID == id) {
+//       usersURLs[shortUrlId] = urlDatabase[shortUrlId].longURL;
+//     }
+//   }
+//   return usersURLs;
+// }
