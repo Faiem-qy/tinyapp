@@ -32,6 +32,7 @@ const urlDatabase = {
     userID: "user2ID",
   },
 };
+console.log(urlDatabase);
 
 const users = {
   aJ48lW: {
@@ -45,14 +46,15 @@ const users = {
     password: bcrypt.hashSync("pass", 10),
   },
 };
+console.log(users);
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-// app.get("/", (req, res) => {
-//   res.send("Hello!");
-// });
+app.get("/", (req, res) => {
+  res.send("Hello!");
+});
 
 app.use(express.urlencoded({ extended: true }));
 // app.use(cookieParser());//*******
@@ -92,6 +94,8 @@ app.get("/urls/:id", (req, res) => {
     res.send("<html><head><title>Error</title></head><body><h1>🛑🛑🛑You need to be logged in!! 🛑🛑🛑</h1></body></html>");
   } else if (!confirmId(id, urlDatabase)) {
     res.send("<html><head><title>Error</title></head><body><h1>🛑This url does not exist 🛑</h1></body></html>");
+  } else if (!urlsForUser(user_id, urlDatabase)[id]) {
+    res.send("<html><head><title>Error</title></head><body><h1>🛑This url does not belong to you </h1></body></html>");
   } else {
     const templateVars = {
       id,
@@ -124,10 +128,10 @@ app.get("/urls", (req, res) => {
 
 app.get("/u/:id", (req, res) => {
   const shortURL = req.params.id;//grab id from address bar
-  const longURL = urlDatabase[shortURL].longURL;// use id to get corresponding value from urlDatabase object
   if (!confirmId(shortURL, urlDatabase)) {
-    res.status(404).send('<html><head><title>Error</title></head><body><h1>Page not found</h1><p>The page you requested could not be found.</p></body></html>');
+    res.status(404).send('<html><head><title>Error</title></head><body><h1>Not found</h1><p>The URL you requested could not be found.</p></body></html>');
   } else {
+    const longURL = urlDatabase[shortURL].longURL;// use id to get corresponding value from urlDatabase object
     res.redirect(longURL);
   }
 });
@@ -228,7 +232,7 @@ app.post("/logout", (req, res) => {
 app.post("/register", (req, res) => {
   const id = generateRandomString();
   const email = req.body.email;
-  const password = req.body.password;
+  const password = bcrypt.hashSync(req.body.password, 10);
   if (email === '' || password === '') {
     return res.status(400).send("Error 400 - Please provide valid email and/or password");
   } else if (getUserByEmail(email, users)) {
@@ -237,7 +241,7 @@ app.post("/register", (req, res) => {
     users[id] = { id, email, password };
     // res.cookie('user_id', users[id].id);
     req.session.user_id = users[id].id;
-
+    console.log(users);
     console.log("/register - session", req.session.user_id);
 
   }
@@ -267,64 +271,3 @@ app.post("/login", (req, res) => {
   }
   res.redirect(`/urls`);
 });
-
-// function generateRandomString() {
-//   const alphanumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-//   let result = '';
-//   for (let i = 0; i < 6; i++) {
-//     result += alphanumeric.charAt(Math.floor(Math.random() * alphanumeric.length));
-//   }
-//   return result;
-// }
-
-
-// const getUserByEmail = (email, users) => {
-//   //loop through the object using a for of loop
-//   for (const userId in users) {
-//     if (users[userId].email === email) {
-//       return users;
-//     }
-//   }
-//   //if object.key(email) is equal to req.body.email
-//   //then return the entire user object
-//   //else return null
-//   return null;
-// };
-
-// const checkUserPassword = (password) => {
-//   for (const userId in users) {
-//     if (bcrypt.compareSync(password, users[userId].password)) {
-//       return true;
-//     }
-//   }
-//   return null;
-// };
-
-// function getUserId(email, users) {
-//   for (const user in users) {
-//     if (users[user].email === email) {
-//       return users[user].id;
-//     }
-//   }
-//   return false;
-// }
-
-
-// function confirmId(id, db) {
-//   for (const key in db) {
-//     if (key === id) {
-//       return true;
-//     }
-//   }
-//   return false;
-// }
-
-// function urlsForUser(id) {
-//   let usersURLs = {};
-//   for (const shortUrlId in urlDatabase) {
-//     if (urlDatabase[shortUrlId].userID == id) {
-//       usersURLs[shortUrlId] = urlDatabase[shortUrlId].longURL;
-//     }
-//   }
-//   return usersURLs;
-// }
