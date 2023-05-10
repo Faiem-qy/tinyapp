@@ -14,7 +14,7 @@ const getUserByEmail = (email, users) => {
   //loop through the object using a for of loop
   for (const userId in users) {
     if (users[userId].email === email) {
-      return users;
+      return users[userId].id;
     }
   }
   //if object.key(email) is equal to req.body.email
