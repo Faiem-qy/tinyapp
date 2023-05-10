@@ -52,10 +52,6 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-app.get("/", (req, res) => {
-  res.send("Hello!");
-});
-
 app.use(express.urlencoded({ extended: true }));
 // app.use(cookieParser());//*******
 app.use(cookieSession({
@@ -68,9 +64,6 @@ app.use(cookieSession({
 
 app.get("/urls.json", (req, res) => {
   res.json(urlDatabase);
-});
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 app.get("/urls/new", (req, res) => {
@@ -173,6 +166,16 @@ app.get("/login", (req, res) => {
     };
     res.render("login", templateVars);
   }
+});
+
+//Home
+app.get("/", (req, res) => {
+  let user_id = req.session.user_id;
+  const templateVars = {
+    user: users[user_id],
+    user_id: req.session.user_id,
+  };
+  res.render("home", templateVars);
 });
 
 
