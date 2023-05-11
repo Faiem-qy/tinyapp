@@ -4,6 +4,7 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 ## Final Product
 
+!["Page displaying logged in users URLs"](assets/home.png)
 !["Page displaying logged in users URLs"](assets/register.png)
 !["Page displaying logged in users URLs"](assets/login.png)
 !["Page displaying logged in users URLs"](assets/urls.png)
@@ -23,3 +24,7 @@ TinyApp is a full stack web application built with Node and Express that allows 
 
 - Install all dependencies (using the `npm install` command).
 - Run the development web server using the `node express_server.js` command.
+- Open the browser to http://localhost:8080/
+- Login with 
+ --email: fakeemail@email.com
+ --password: pass
