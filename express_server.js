@@ -170,10 +170,10 @@ app.get("/login", (req, res) => {
 
 //Home
 app.get("/", (req, res) => {
-  let user_id = req.session.user_id;
+  const user_id = req.session.user_id;
   const templateVars = {
-    user: users[user_id],
-    user_id: req.session.user_id,
+    users,
+    user_id,
   };
   res.render("home", templateVars);
 });
@@ -267,10 +267,9 @@ app.post("/login", (req, res) => {
     if (checkUserPassword(password, users)) {
       // res.cookie('user_id', users[user_id].id);
       req.session.user_id = users[user_id].id;
+    } else {
+      return res.status(403).send("Error 403 - Incorrect Password!!");
     }
-    // return res.status(400).send("Error 400 - Email already exists");
-  } else {
-    return res.status(403).send("Error 403 - Incorrect Password!!");
   }
   res.redirect(`/urls`);
 });
